@@ -508,7 +508,12 @@
     "id": 60,
     "Versão": "1.1.051",
     "AtualizadoEm": "09/03/2026",
-    "Implementações Realizadas": [],
-    "Correções Realizadas": []
+    "Implementações Realizadas": [
+      "Criação do comunicado de Atualização, onde ao clicar em ciente executa  o reload"
+    ],
+    "Correções Realizadas": [
+      "Correção na visualização da versao do aplicativo",
+      "Reativação do comunicado comercial"
+    ]
   }
 ]

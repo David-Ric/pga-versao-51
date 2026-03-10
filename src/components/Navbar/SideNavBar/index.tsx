@@ -58,7 +58,7 @@ import {
   FaBars,
 } from 'react-icons/fa';
 import { TiShoppingCart } from 'react-icons/ti';
-import { useOnlineStatus } from '../../../provider/PortalContext';
+import { useAppOnlineStatus } from '../../../provider/PortalContext';
 import { RiPagesLine, RiShoppingBag3Line } from 'react-icons/ri';
 import { TbBusinessplan, TbReport, TbReportSearch } from 'react-icons/tb';
 import api from '../../../services/api';
@@ -781,7 +781,8 @@ export default function SideNavBar() {
     setShowupdatePromotor(false);
   }
 
-  const [isOnline, setIsOnline] = useState(true);
+  const { appOnline } = useAppOnlineStatus();
+  const isOnline = appOnline;
 
   useEffect(() => {
     if (
@@ -796,19 +797,7 @@ export default function SideNavBar() {
     }
   }, []);
 
-  useEffect(() => {
-    const checkOnlineStatus = () => {
-      setIsOnline(window.navigator.onLine);
-    };
-
-    checkOnlineStatus();
-
-    const intervalId = setInterval(checkOnlineStatus, 3000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  useEffect(() => {}, []);
 
   useEffect(() => {
     if (isOnline) {

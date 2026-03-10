@@ -454,7 +454,9 @@ const NavbarDashHeader = () => {
   const [deslogar, setDeslogar] = useState(true);
   const temporizadorRef = useRef<any>(null);
   let [isMobile, setIsMobile] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const { online, apiOk, appOnline } = useAppOnlineStatus();
+  const isOnline = appOnline;
+  const isApiDown = online && !apiOk;
   const minutos: number = JSON.parse(
     localStorage.getItem('@Portal/TempoSessao') || '15'
   );
@@ -474,13 +476,19 @@ const NavbarDashHeader = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      window.innerWidth <= 1024 ||
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      )
-    ) {
-    }
+    const detect = () => {
+      const mobile =
+        window.innerWidth <= 1024 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+      setIsMobile(mobile);
+    };
+    detect();
+    window.addEventListener('resize', detect);
+    return () => {
+      window.removeEventListener('resize', detect);
+    };
   }, []);
 
   async function PostsLidos() {
@@ -746,8 +754,6 @@ const NavbarDashHeader = () => {
       });
   }
 
-  const { apiOk } = useAppOnlineStatus();
-  const isApiDown = isOnline && !apiOk;
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {}, []);
@@ -765,25 +771,14 @@ const NavbarDashHeader = () => {
   }, [location.pathname, isMobile]);
 
   useEffect(() => {
-    const updateStatus = () => {
-      const online = window.navigator.onLine;
-      setIsOnline(online);
-      localStorage.setItem('@Portal/Status', online ? 'true' : 'false');
-    };
-    updateStatus();
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
-    const intervalId = setInterval(updateStatus, 1000);
-    return () => {
-      window.removeEventListener('online', updateStatus);
-      window.removeEventListener('offline', updateStatus);
-      clearInterval(intervalId);
-    };
-  }, []);
+    if (!isMobile) {
+      setIsOffline(!isOnline);
+    } else {
+      setIsOffline(false);
+    }
+  }, [isOnline, isMobile]);
 
-  useEffect(() => {
-    setIsOffline(!isOnline);
-  }, [isOnline]);
+  
 
   async function VerificarComunicadoComercial() {
     await api
@@ -1454,31 +1449,23 @@ const NavbarDashHeader = () => {
             ) : (
               <></>
             )}
-            {isOnline ? (
-              <>
+            {(() => {
+              const text =
+                isApiDown && isMobile ? 'api offiline' : isOnline ? 'Online' : 'Offline';
+              const cls =
+                isOnline && !(isApiDown && isMobile) ? 'divOline' : 'divOffline';
+              return (
                 <div
-                  className="divOline"
+                  className={cls}
                   onClick={() => {
                     window.location.reload();
                   }}
                 >
-                  <h1>Online</h1>
+                  <h1>{text}</h1>
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="divOffline">
-                  <h1>Offline</h1>
-                </div>
-              </>
-            )}
-            {isMobile ? (
-              <>
-                <h1 className="versao2"> Versão: {versaoFront}</h1>
-              </>
-            ) : (
-              <></>
-            )}
+              );
+            })()}
+            <h1 className="versao2"> Versão: {versaoFront}</h1>
             <div className="logo-lik2">
               <Link className="logo-b d-flex" to="/espaco-colaborador">
                 <h1 className="d-flex">

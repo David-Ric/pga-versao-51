@@ -20,6 +20,7 @@ import { matchPath } from 'react-router';
 import { BiUserVoice } from 'react-icons/bi';
 import { openDB, DBSchema } from 'idb';
 import { criarBancoDados, versao } from '../../data/indexedDB';
+import { useAppOnlineStatus } from '../../provider/PortalContext';
 
 // import { criarBancoDadosDelete } from "../../data/indexedDBDelete";
 interface PgamobileDB extends DBSchema {
@@ -544,24 +545,10 @@ export default function FooterMobile() {
   const usuario: iDadosUsuario = JSON.parse(
     localStorage.getItem('@Portal/usuario') || '{}'
   );
-  const [isOnline, setIsOnline] = useState(true);
+  const { appOnline } = useAppOnlineStatus();
+  const isOnline = appOnline;
 
-  useEffect(() => {
-    const updateStatus = () => {
-      const online = window.navigator.onLine;
-      setIsOnline(online);
-      localStorage.setItem('@Portal/Status', online ? 'true' : 'false');
-    };
-    updateStatus();
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
-    const intervalId = setInterval(updateStatus, 1000);
-    return () => {
-      window.removeEventListener('online', updateStatus);
-      window.removeEventListener('offline', updateStatus);
-      clearInterval(intervalId);
-    };
-  }, []);
+  useEffect(() => {}, []);
 
   useEffect(() => {}, []);
 
