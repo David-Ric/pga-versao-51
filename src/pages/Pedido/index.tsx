@@ -658,6 +658,7 @@ export default function PedidoVendas() {
   let [OptinosNegocia, setOptinosNegocia] = useState<iDataSelect[]>([]);
   const [OptinosEmpresa, setOptinosEmpresa] = useState<iDataSelect[]>([]);
   const [promotorPesquisa, setPromotorPesquisa] = useState<iDataSelect[]>([]);
+  const [parceirosLoading, setParceirosLoading] = useState(false);
 
   let [clienteSelecionado, setClienteSelecionado] = useState<iParceir | null>(
     null
@@ -1020,7 +1021,7 @@ export default function PedidoVendas() {
 
   async function VerificarAtualizacao() {
     await api
-      .get(`/api/ComunicadoComercial?pagina=1&totalpagina=999`)
+      .get(`/api/Comunicado?pagina=1&totalpagina=999`)
       .then((response) => {
         console.log('verificar atualização', response.data.data);
         if (response.data.data.length > 0 && usuario.username != 'admin') {
@@ -1042,6 +1043,38 @@ export default function PedidoVendas() {
 
   const { appOnline } = useAppOnlineStatus();
   const isOnline = appOnline;
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const emDigitacao =
+        localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+      if (emDigitacao) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const keyHandler = (e: any) => {
+      const emDigitacao =
+        localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+      if (!emDigitacao) return;
+      const k = String(e?.key || '').toLowerCase();
+      if (k === 'f5' || (e.ctrlKey && k === 'r')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', keyHandler, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', keyHandler, { capture: true } as any);
+    };
+  }, []);
 
   useEffect(() => {
     const valor = String(tipoNegocia ?? '');
@@ -2813,6 +2846,7 @@ export default function PedidoVendas() {
       'entrou aquiiiii.....................................................................................................'
     );
     console.log('isMobile', isMobile);
+    setParceirosLoading(true);
 
     if (!isOnline) {
       try {
@@ -2836,8 +2870,10 @@ export default function PedidoVendas() {
         setPromotorPesquisa(options);
 
         setLoading(false);
+        setParceirosLoading(false);
       } catch (error) {
         setLoading(false);
+        setParceirosLoading(false);
         console.log('Ocorreu um erro', error);
       }
     } else {
@@ -2880,9 +2916,11 @@ export default function PedidoVendas() {
             //   //   console.log("teste",promotorPesquisa)
             // });
           }
+          setParceirosLoading(false);
         })
         .catch((error) => {
           setLoading(false);
+          setParceirosLoading(false);
           console.log('Ocorreu um erro');
         });
     }
@@ -3527,7 +3565,11 @@ export default function PedidoVendas() {
     } finally {
       await transaction.done;
       await db.close();
-      window.location.reload();
+      const emDigitacao =
+        localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+      if (!emDigitacao) {
+        window.location.reload();
+      }
     }
   }
   //=============RECEBER DADOS MOBILE ===================================
@@ -4525,7 +4567,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
       await transaction.done;
       await db.close();
 
-      window.location.reload();
+      const emDigitacao =
+        localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+      if (!emDigitacao) {
+        window.location.reload();
+      }
     }
   }
 
@@ -7510,6 +7556,7 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
   }
   //==========Salvar como não enviado=========================
   async function SalvarItensPedidoPendente() {
+    console.log('pedidosSalvar', pedidosSalvar);
     await api
       .post('/api/ItemPedidoVenda', pedidosSalvar)
       .then((response) => {
@@ -12114,7 +12161,7 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
     //       Id: pedidoVendaID,
     //       Filial: String(codEmpresa),
     //       PalmPV: numPedido,
-    //       VendedorId: usuario.username,
+    //       VendedorIawait SalvarItensPedidoPendente();d: usuario.username,
     //       TipoNegociacaoId: Number(tipoNegocia),
     //       TipPed: tipPed,
     //       ParceiroId: parceiroId,
@@ -13188,13 +13235,22 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
                           id="promotor"
                           className="inputparceiro"
                           placeholder={placeHolder}
-                          noOptionsMessage={() => 'Nenhum cliente encontrado'}
-                          onMenuOpen={Verifica}
+                          noOptionsMessage={() =>
+                            parceirosLoading
+                              ? 'Carregando dados dos parceiros...'
+                              : 'Nenhum cliente encontrado'
+                          }
+                          onMenuOpen={() => {
+                            setParceirosLoading(true);
+                            Verifica();
+                            GetPromotor();
+                          }}
                           isDisabled={
                             itemEnviado || arrayPedido?.length > 0 || showlistaPedidosSelec
                           }
                           options={promotorPesquisa}
                           onChange={(value: any) => {
+                            localStorage.setItem('@Portal/PedidoEmDigitacao', 'true');
                             localStorage.removeItem('PedidoSelecionadoId');
                             localStorage.removeItem('PedidoSelecionadoPALMPV');
                             localStorage.removeItem('PedidoInfoFilial');
@@ -15548,7 +15604,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
                       'seu pedido está sendo enviado ao sankhya'
                     ))
                 ) {
-                  window.location.reload();
+                  const emDigitacao =
+                    localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                  if (!emDigitacao) {
+                    window.location.reload();
+                  }
                 }
               }}
             >
@@ -15600,7 +15660,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
                       .toLowerCase()
                       .includes('seu pedido está sendo enviado ao sankhya'))
                 ) {
-                  window.location.reload();
+                  const emDigitacao =
+                    localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                  if (!emDigitacao) {
+                    window.location.reload();
+                  }
                 }
               }}
             >
@@ -15662,7 +15726,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
                       .toLowerCase()
                       .includes('seu pedido está sendo enviado ao sankhya'))
                 ) {
-                  window.location.reload();
+                  const emDigitacao =
+                    localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                  if (!emDigitacao) {
+                    window.location.reload();
+                  }
                 }
               }}
             >
@@ -15737,7 +15805,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
                           .toLowerCase()
                           .includes('seu pedido está sendo enviado ao sankhya'))
                     ) {
-                      window.location.reload();
+                      const emDigitacao =
+                        localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                      if (!emDigitacao) {
+                        window.location.reload();
+                      }
                     }
                   }}
                 >
@@ -15768,7 +15840,11 @@ WHERE PRO.CODPROD <> 0 AND PRO.USOPROD IN ('V','R')`;
               className="btn btn-primary"
               onClick={() => {
                 handleCloseConfirmaEnvio();
-                window.location.reload();
+                const emDigitacao =
+                  localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                if (!emDigitacao) {
+                  window.location.reload();
+                }
               }}
             >
               Ok

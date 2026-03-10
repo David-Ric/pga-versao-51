@@ -31,7 +31,13 @@ const disableServiceWorkerOnLocalhost = async () => {
       const key = 'sw-disabled-reloaded';
       if (!sessionStorage.getItem(key)) {
         sessionStorage.setItem(key, '1');
-        window.location.reload();
+        const emDigitacao =
+          localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+        const onPedido =
+          String(window.location.pathname || '').toLowerCase().includes('pedido');
+        if (!(emDigitacao && onPedido)) {
+          window.location.reload();
+        }
       }
     }
   } catch {}

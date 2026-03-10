@@ -1,5 +1,6 @@
 
-const CACHE = "pwabuilder-offline-V39";
+const CACHE = "pwabuilder-offline-V42";
+const CACHE_ASSETS = "pwabuilder-assets-V42";
 
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
@@ -20,7 +21,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE) {
+          if (cacheName !== CACHE && cacheName !== CACHE_ASSETS) {
             return caches.delete(cacheName);
           }
         })
@@ -28,6 +29,8 @@ self.addEventListener("activate", (event) => {
     })
   );
 });
+
+workbox.navigationPreload.enable();
 
 workbox.routing.registerRoute(
   new RegExp('^https://pga.cigel.com.br:8095/'),
@@ -44,12 +47,18 @@ workbox.routing.registerRoute(
   new workbox.strategies.NetworkOnly()
 );
 
- workbox.routing.registerRoute(
-   new RegExp('.*'),
-   new workbox.strategies.NetworkFirst({
-     cacheName: CACHE,
-   })
- );
+workbox.routing.registerRoute(
+  ({ request }) => request.mode === "navigate",
+  new workbox.strategies.NetworkOnly()
+);
+
+workbox.routing.registerRoute(
+  ({ request }) =>
+    ["script", "style", "image", "font"].includes(request.destination),
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: CACHE_ASSETS,
+  })
+);
 
 /*
 self.addEventListener("activate", (event) => {

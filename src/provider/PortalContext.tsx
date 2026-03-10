@@ -73,7 +73,7 @@ export const PortalProvider = ({ children }: { children: React.ReactNode }) => {
   const [apiOk, setApiOk] = useState(window.navigator.onLine);
   const [lastSuccessTs, setLastSuccessTs] = useState<number>(Date.now());
   const apiCheckInFlightRef = useRef(false);
-  const appOnline = online && apiOk;
+  const appOnline = online;
 
   useEffect(() => {
     const updateStatus = () => {

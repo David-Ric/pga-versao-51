@@ -880,7 +880,13 @@ export default function SideNavBar() {
           '@Portal/menuPrincipal',
           JSON.stringify(response.data.data)
         );
-        window.location.reload();
+        const emDigitacao =
+          localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+        const onPedido =
+          String(window.location.pathname || '').toLowerCase().includes('pedido');
+        if (!(emDigitacao && onPedido)) {
+          window.location.reload();
+        }
         setLoading(false);
         console.log(response);
 
@@ -1597,7 +1603,15 @@ export default function SideNavBar() {
           setTabelarro9('Erro ao receber dados para a tabela Titulo');
         }
         if (erroSankhya == false) {
-          window.location.reload();
+          const emDigitacao =
+            localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+          const onPedido =
+            String(window.location.pathname || '')
+              .toLowerCase()
+              .includes('pedido');
+          if (!(emDigitacao && onPedido)) {
+            window.location.reload();
+          }
         }
       })
       .catch((error) => {

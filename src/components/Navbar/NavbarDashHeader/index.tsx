@@ -468,7 +468,13 @@ const NavbarDashHeader = () => {
 
   function handleCloseDownLUp() {
     setShowDownL(false);
-    window.location.reload();
+    const emDigitacao =
+      localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+    const onPedido =
+      String(window.location.pathname || '').toLowerCase().includes('pedido');
+    if (!(emDigitacao && onPedido)) {
+      window.location.reload();
+    }
   }
 
   useEffect(() => {
@@ -883,7 +889,15 @@ const NavbarDashHeader = () => {
       setComunicadoAtualizacao(null);
       await CarregarPostLidos();
       if (isUpdate) {
-        window.location.reload();
+        const emDigitacao =
+          localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+        const onPedido =
+          String(window.location.pathname || '')
+            .toLowerCase()
+            .includes('pedido');
+        if (!(emDigitacao && onPedido)) {
+          window.location.reload();
+        }
       }
     } catch {}
   };
@@ -1458,7 +1472,15 @@ const NavbarDashHeader = () => {
                 <div
                   className={cls}
                   onClick={() => {
-                    window.location.reload();
+                    const emDigitacao =
+                      localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+                    const onPedido =
+                      String(window.location.pathname || '')
+                        .toLowerCase()
+                        .includes('pedido');
+                    if (!(emDigitacao && onPedido)) {
+                      window.location.reload();
+                    }
                   }}
                 >
                   <h1>{text}</h1>

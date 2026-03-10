@@ -537,7 +537,13 @@ export default function FooterMobile() {
 
   function handleCloseMensageSankhya() {
     setShowMensageSankhya(false);
-    window.location.reload();
+    const emDigitacao =
+      localStorage.getItem('@Portal/PedidoEmDigitacao') === 'true';
+    const onPedido =
+      String(window.location.pathname || '').toLowerCase().includes('pedido');
+    if (!(emDigitacao && onPedido)) {
+      window.location.reload();
+    }
   }
 
   // const handleCloseMensageSankhya = () => setShowMensageSankhya(false);
